@@ -3,6 +3,8 @@ package com.usersapi.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users",
@@ -20,18 +22,22 @@ public class User {
     private Integer version;
 
     @NotBlank
+    @Size(max = 100)
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
     @NotBlank
+    @Size(max = 100)
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Email
     @NotBlank
+    @Size(max = 255)
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
     private Gender gender;
