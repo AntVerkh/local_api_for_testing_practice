@@ -2,10 +2,7 @@ package com.usersapi.web;
 
 import com.usersapi.model.Gender;
 import com.usersapi.service.UserService;
-import com.usersapi.web.dto.CreateUserRequest;
-import com.usersapi.web.dto.UpdatePhoneRequest;
-import com.usersapi.web.dto.UpdateUserRequest;
-import com.usersapi.web.dto.UserResponse;
+import com.usersapi.web.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,27 +29,51 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Создать пользователя", description = "Создание нового пользователя с опциональным телефоном")
+    @Operation(summary = "Создать пользователя", description = "Создание нового пользователя. Обязательные поля: firstName, lastName, email, gender")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Пользователь создан"),
+            @ApiResponse(responseCode = "400", description = "Невалидные данные",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "Missing required field", value = """
+                            {
+                                "code": "VALIDATION_ERROR",
+                                "message": "Validation failed",
+                                "details": {
+                                    "firstName": "First name is required",
+                                    "lastName": "Last name is required"
+                                }
+                            }
+                        """),
+                            @ExampleObject(name = "Invalid email", value = """
+                            {
+                                "code": "VALIDATION_ERROR",
+                                "message": "Validation failed",
+                                "details": {
+                                    "email": "Email should be valid"
+                                }
+                            }
+                        """),
+                            @ExampleObject(name = "Field too long", value = """
+                            {
+                                "code": "VALIDATION_ERROR",
+                                "message": "Validation failed",
+                                "details": {
+                                    "firstName": "First name must be between 1 and 100 characters"
+                                }
+                            }
+                        """)
+                    })),
             @ApiResponse(responseCode = "409", description = "Email уже существует",
                     content = @Content(examples = @ExampleObject(value = """
                         {
                             "code": "CONFLICT",
                             "message": "Email already exists: ivan.petrov@example.com"
                         }
-                    """))),
-            @ApiResponse(responseCode = "431", description = "Слишком длинные данные",
-                    content = @Content(examples = @ExampleObject(value = """
-                        {
-                            "code": "REQUEST_HEADER_FIELDS_TOO_LARGE",
-                            "message": "First name too long"
-                        }
                     """)))
     })
     @PostMapping
-    public UserResponse create(@Valid @RequestBody CreateUserRequest req) {
-        return userService.create(req);
+    public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
+        return userService.create(request);
     }
 
     @Operation(summary = "Получить пользователя", description = "Получение пользователя по ID")
@@ -94,9 +115,20 @@ public class UserController {
         userService.delete(id);
     }
 
-    @Operation(summary = "Обновить пользователя", description = "Обновление данных пользователя")
+    @Operation(summary = "Обновить пользователя", description = "Обновление данных пользователя. Все поля опциональные")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Пользователь обновлен"),
+            @ApiResponse(responseCode = "400", description = "Невалидные данные",
+                    content = @Content(examples = @ExampleObject(value = """
+                        {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Validation failed",
+                            "details": {
+                                "email": "Email should be valid",
+                                "firstName": "First name must be between 1 and 100 characters"
+                            }
+                        }
+                    """))),
             @ApiResponse(responseCode = "404", description = "Пользователь не найден",
                     content = @Content(examples = @ExampleObject(value = """
                         {
@@ -128,13 +160,23 @@ public class UserController {
     })
     @PostMapping("/{id}")
     public UserResponse update(@PathVariable Integer id,
-                               @Valid @RequestBody UpdateUserRequest req) {
-        return userService.update(id, req);
+                               @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, request);
     }
 
-    @Operation(summary = "Обновить телефон", description = "Обновление телефона пользователя")
+    @Operation(summary = "Обновить телефон", description = "Обновление телефона пользователя. Все поля опциональные")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Телефон обновлен"),
+            @ApiResponse(responseCode = "400", description = "Невалидные данные",
+                    content = @Content(examples = @ExampleObject(value = """
+                        {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Validation failed",
+                            "details": {
+                                "number": "Phone number can only contain digits, +, -, (, ) and spaces"
+                            }
+                        }
+                    """))),
             @ApiResponse(responseCode = "404", description = "Пользователь не найден",
                     content = @Content(examples = @ExampleObject(value = """
                         {
@@ -152,8 +194,8 @@ public class UserController {
     })
     @PostMapping("/{id}/phone")
     public UserResponse updatePhone(@PathVariable Integer id,
-                                    @Valid @RequestBody UpdatePhoneRequest req) {
-        return userService.updatePhone(id, req);
+                                    @Valid @RequestBody UpdatePhoneRequest request) {
+        return userService.updatePhone(id, request);
     }
 
     @Operation(summary = "Загрузить аватар", description = "Загрузка аватара для пользователя")

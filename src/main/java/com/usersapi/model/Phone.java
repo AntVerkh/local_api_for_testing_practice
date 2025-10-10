@@ -1,6 +1,7 @@
 package com.usersapi.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "phones")
@@ -10,9 +11,11 @@ public class Phone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Size(max = 20)
     @Column(name = "number", nullable = false)
     private String number;
 
+    @Size(max = 50)
     @Column(name = "brand", nullable = false)
     private String brand;
 

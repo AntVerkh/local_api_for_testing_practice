@@ -43,25 +43,21 @@ public class UserService {
     }
 
     public UserResponse create(CreateUserRequest createUserRequest) {
-        // Проверка на слишком длинные заголовки (имитация 431)
-        if (createUserRequest.getFirstName() != null && createUserRequest.getFirstName().length() > 8) {
-            throw new HeaderTooLargeException("First name too long");
-        }
-
+        // Валидация email на уникальность
         if (userRepository.existsByEmail(createUserRequest.getEmail())) {
             throw new ConflictException("Email already exists: " + createUserRequest.getEmail());
         }
 
         User user = new User();
-        user.setFirstName(createUserRequest.getFirstName());
-        user.setLastName(createUserRequest.getLastName());
-        user.setEmail(createUserRequest.getEmail());
+        user.setFirstName(createUserRequest.getFirstName().trim());
+        user.setLastName(createUserRequest.getLastName().trim());
+        user.setEmail(createUserRequest.getEmail().trim().toLowerCase());
         user.setGender(createUserRequest.getGender());
 
         if (createUserRequest.getPhone() != null) {
             Phone phone = new Phone();
-            phone.setNumber(createUserRequest.getPhone().getNumber());
-            phone.setBrand(createUserRequest.getPhone().getBrand());
+            phone.setNumber(createUserRequest.getPhone().getNumber() != null ? createUserRequest.getPhone().getNumber().trim() : null);
+            phone.setBrand(createUserRequest.getPhone().getBrand() != null ? createUserRequest.getPhone().getBrand().trim() : null);
             user.setPhone(phone);
         }
 
@@ -88,45 +84,30 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public UserResponse update(Integer id, UpdateUserRequest req) {
-        // Получаем блокировку для пользователя (423 в случае блокировки)
-        ReentrantLock lock = userLocks.computeIfAbsent(id, k -> new ReentrantLock());
-        if (!lock.tryLock()) {
-            throw new LockedException("User is currently being modified by another request");
-        }
+    public UserResponse update(Integer id, UpdateUserRequest updateUserRequest) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found: " + id));
 
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("User not found: " + id));
-
-            // Проверка на необрабатываемые данные (422)
-            if (req.getFirstName() != null && "invalid".equalsIgnoreCase(req.getFirstName())) {
-                throw new UnprocessableEntityException("Invalid first name format");
+        if (updateUserRequest.getFirstName() != null) user.setFirstName(updateUserRequest.getFirstName().trim());
+        if (updateUserRequest.getLastName() != null) user.setLastName(updateUserRequest.getLastName().trim());
+        if (updateUserRequest.getEmail() != null) {
+            String newEmail = updateUserRequest.getEmail().trim().toLowerCase();
+            if (!user.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
+                throw new ConflictException("Email already exists: " + newEmail);
             }
-
-            if (req.getFirstName() != null) user.setFirstName(req.getFirstName());
-            if (req.getLastName() != null) user.setLastName(req.getLastName());
-            if (req.getEmail() != null) {
-                if (!user.getEmail().equals(req.getEmail()) && userRepository.existsByEmail(req.getEmail())) {
-                    throw new ConflictException("Email already exists: " + req.getEmail());
-                }
-                user.setEmail(req.getEmail());
-            }
-            if (req.getGender() != null) user.setGender(req.getGender());
-
-            return toResponse(user);
-        } finally {
-            lock.unlock();
-            userLocks.remove(id);
+            user.setEmail(newEmail);
         }
+        if (updateUserRequest.getGender() != null) user.setGender(updateUserRequest.getGender());
+
+        return toResponse(user);
     }
 
-    public UserResponse updatePhone(Integer userId, UpdatePhoneRequest req) {
+    public UserResponse updatePhone(Integer userId, UpdatePhoneRequest updatePhoneRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found: " + userId));
 
-        // Проверка на неприемлемый формат номера (406)
-        if (req.getNumber() != null && !isAcceptablePhoneNumber(req.getNumber())) {
+        // Дополнительная бизнес-валидация номера телефона
+        if (updatePhoneRequest.getNumber() != null && !isAcceptablePhoneNumber(updatePhoneRequest.getNumber())) {
             throw new NotAcceptableException("Phone number format not acceptable");
         }
 
@@ -135,8 +116,10 @@ public class UserService {
             phone = new Phone();
             user.setPhone(phone);
         }
-        if (req.getNumber() != null) phone.setNumber(req.getNumber());
-        if (req.getBrand() != null) phone.setBrand(req.getBrand());
+        if (updatePhoneRequest.getNumber() != null)
+            phone.setNumber(updatePhoneRequest.getNumber().trim());
+        if (updatePhoneRequest.getBrand() != null)
+            phone.setBrand(updatePhoneRequest.getBrand().trim());
 
         return toResponse(user);
     }
@@ -175,8 +158,8 @@ public class UserService {
             user.setAvatarFileSize(file.getSize());
             user.setAvatarContentType(contentType);
 
-        } catch (IOException ex) {
-            throw new InternalErrorException("Could not store file: " + ex.getMessage());
+        } catch (IOException ioException) {
+            throw new InternalErrorException("Could not store file: " + ioException.getMessage());
         }
     }
 
