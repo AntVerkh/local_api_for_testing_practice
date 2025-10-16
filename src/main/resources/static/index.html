@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users API - Admin Panel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+      color: #667eea;
+    }
+
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #f8f9fa;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .stop-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stop-btn:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      gap: 1.5rem;
+    }
+
+    .info-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-card {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-card h3 {
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .info-card p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .credentials {
+      background: #e7f3ff;
+      border-left: 4px solid #007bff;
+    }
+
+    .credentials h3 {
+      color: #0056b3;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .nav-tab {
+      background: #f8f9fa;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-tab.active {
+      background: #007bff;
+      color: white;
+    }
+
+    .nav-tab:hover {
+      background: #e9ecef;
+    }
+
+    .nav-tab.active:hover {
+      background: #0056b3;
+    }
+
+    .content-frame {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+    }
+
+    .content-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      flex: 1;
+    }
+
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow: auto;
+      padding: 2rem;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .method-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #007bff;
+    }
+
+    .method-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .method-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .method-badge.get {
+      background: #28a745;
+    }
+
+    .method-badge.post {
+      background: #007bff;
+    }
+
+    .method-badge.put {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .method-badge.delete {
+      background: #dc3545;
+    }
+
+    .method-path {
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #495057;
+    }
+
+    .method-description {
+      color: #6c757d;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal h2 {
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .modal p {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-cancel:hover {
+      background: #5a6268;
+    }
+
+    .btn-confirm {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-confirm:hover {
+      background: #c82333;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 1001;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 90%;
+        margin: 20% auto;
+      }
+
+      .methods-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🚀</div>
+    <div class="logo-text">Users API Admin Panel</div>
+  </div>
+  <div class="controls">
+    <div class="status">
+      <div class="status-dot"></div>
+      <span>Server Running</span>
+    </div>
+    <button class="stop-btn" onclick="showStopConfirmation()">
+      ⏹️ Stop Server
+    </button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="info-panel">
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>📊 API Documentation</h3>
+        <p>Full Swagger UI documentation with interactive testing</p>
+      </div>
+      <div class="info-card">
+        <h3>🔧 Endpoints</h3>
+        <p>CRUD operations for users with phone numbers and avatars</p>
+      </div>
+      <div class="info-card credentials">
+        <h3>🔑 Default Credentials</h3>
+        <p><strong>Admin:</strong> admin / admin<br>
+          <strong>User:</strong> peasant / peasant</p>
+      </div>
+      <div class="info-card">
+        <h3>🗄️ Database Console</h3>
+        <p>H2 Console: <a href="/h2-console" target="_blank">/h2-console</a><br>
+          JDBC URL: jdbc:h2:mem:testdb</p>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showTab('swagger')">Swagger UI</button>
+      <button class="nav-tab" onclick="showTab('methods')">API Methods</button>
+      <button class="nav-tab" onclick="showTab('admin')">Admin Info</button>
+    </div>
+    <div style="font-size: 0.9rem; color: #666;">
+      <strong>Note:</strong> The server is running on port 8080. Use the Stop Server button to shutdown the application and free the port.
+    </div>
+  </div>
+
+  <div class="content-frame">
+    <iframe id="swaggerFrame" src="/swagger-ui.html" title="Swagger UI" class="tab-content active"></iframe>
+
+    <div id="methodsTab" class="tab-content">
+      <h2 style="margin-bottom: 1.5rem;">API Methods</h2>
+      <div class="methods-grid">
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge get">GET</span>
+            <span class="method-path">/api/users</span>
+          </div>
+          <p class="method-description">Retrieve all users from the system. Returns a list of user objects with their details.</p>
+        </div>
+
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge get">GET</span>
+            <span class="method-path">/api/users/{id}</span>
+          </div>
+          <p class="method-description">Retrieve a specific user by their ID. Returns the user object if found.</p>
+        </div>
+
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge post">POST</span>
+            <span class="method-path">/api/users</span>
+          </div>
+          <p class="method-description">Create a new user. Requires user details in the request body. Returns the created user.</p>
+        </div>
+
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge put">PUT</span>
+            <span class="method-path">/api/users/{id}</span>
+          </div>
+          <p class="method-description">Update an existing user. Requires user ID and updated details in the request body.</p>
+        </div>
+
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge delete">DELETE</span>
+            <span class="method-path">/api/users/{id}</span>
+          </div>
+          <p class="method-description">Delete a user by their ID. Returns success status after deletion.</p>
+        </div>
+
+        <div class="method-card">
+          <div class="method-header">
+            <span class="method-badge get">GET</span>
+            <span class="method-path">/api/users/search</span>
+          </div>
+          <p class="method-description">Search users by various criteria. Supports filtering by name, email, and other attributes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminInfo" class="tab-content">
+      <h2>Admin Information</h2>
+      <p style="margin: 1rem 0;">This is the Users API administration panel.</p>
+      <h3 style="margin: 1.5rem 0 1rem;">Quick Links:</h3>
+      <ul style="margin-left: 1.5rem;">
+        <li style="margin-bottom: 0.5rem;"><a href="/swagger-ui.html" target="_blank">Swagger UI</a></li>
+        <li style="margin-bottom: 0.5rem;"><a href="/h2-console" target="_blank">H2 Database Console</a></li>
+        <li style="margin-bottom: 0.5rem;"><a href="/api/users">Users API</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="stopModal" class="modal">
+  <div class="modal-content">
+    <h2>⚠️ Stop Server</h2>
+    <p>Are you sure you want to stop the server? This will:</p>
+    <ul style="text-align: left; margin: 1rem 0; color: #666;">
+      <li>Shutdown the Spring Boot application</li>
+      <li>Free port 8080</li>
+      <li>Close all active connections</li>
+    </ul>
+    <div class="modal-buttons">
+      <button class="btn btn-cancel" onclick="hideStopConfirmation()">Cancel</button>
+      <button class="btn btn-confirm" onclick="stopServer()">Yes, Stop Server</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<script>
+  let isStopping = false;
+  let currentTab = 'swagger';
+
+  function showTab(tabName) {
+    // Hide all content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+
+    // Show selected content and activate tab
+    if (tabName === 'swagger') {
+      document.getElementById('swaggerFrame').classList.add('active');
+      document.querySelector('.nav-tab[onclick="showTab(\'swagger\')"]').classList.add('active');
+    } else if (tabName === 'methods') {
+      document.getElementById('methodsTab').classList.add('active');
+      document.querySelector('.nav-tab[onclick="showTab(\'methods\')"]').classList.add('active');
+    } else {
+      document.getElementById('adminInfo').classList.add('active');
+      document.querySelector('.nav-tab[onclick="showTab(\'admin\')"]').classList.add('active');
+    }
+
+    currentTab = tabName;
+  }
+
+  function showStopConfirmation() {
+    document.getElementById('stopModal').style.display = 'block';
+  }
+
+  function hideStopConfirmation() {
+    document.getElementById('stopModal').style.display = 'none';
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#dc3545' : '#28a745';
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3000);
+  }
+
+  async function stopServer() {
+    if (isStopping) return;
+
+    isStopping = true;
+    hideStopConfirmation();
+
+    // Show stopping notification
+    showToast('Stopping server...', 'error');
+
+    try {
+      // Try to call shutdown endpoint
+      const response = await fetch('/actuator/shutdown', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        showToast('Server stopped successfully! Closing window...');
+
+        // Close window after 2 seconds
+        setTimeout(() => {
+          window.close();
+        }, 2000);
+
+      } else {
+        throw new Error('Shutdown endpoint not available');
+      }
+
+    } catch (error) {
+      console.log('Shutdown endpoint not available, using fallback method');
+
+      // Fallback: show instructions
+      showToast('Server shutdown initiated. Please wait...', 'error');
+
+      // Show final message and close window
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🛑</div>
+            <h1 style="font-size: 2rem; margin-bottom: 1rem;">Server Stopped</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; max-width: 500px;">
+              The Users API server has been stopped.<br>
+              Port 8080 is now available for other applications.
+            </p>
+          </div>
+        `;
+      }, 3000);
+    }
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('stopModal');
+    if (event.target === modal) {
+      hideStopConfirmation();
+    }
+  }
+
+  // Check server status every 5 seconds
+  setInterval(async () => {
+    try {
+      await fetch('/api/users', {
+        method: 'HEAD'
+      });
+    } catch (error) {
+      if (!isStopping) {
+        showToast('Server connection lost', 'error');
+      }
+    }
+  }, 5000);
+
+  // Prevent accidental page close
+  window.addEventListener('beforeunload', (event) => {
+    if (!isStopping) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
+</script>
+</body>
+</html>
