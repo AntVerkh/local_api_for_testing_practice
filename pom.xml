@@ -54,6 +54,11 @@
             <version>2.6.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Для удобства тестирования, если потребуется
         <dependency>
           <groupId>org.springframework.boot</groupId>

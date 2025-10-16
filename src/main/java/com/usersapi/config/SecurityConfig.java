@@ -23,20 +23,24 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .headers(h -> h.frameOptions(f -> f.disable())) // для H2-консоли
+                .headers(h -> h.frameOptions(f -> f.disable()))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger и H2 без авторизации
+                        // Allow frontend and static resources
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**").permitAll()
+                        // Swagger and H2 console
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**").permitAll()
-                        // Разрешить загрузку файлов
+                        // Actuator endpoints
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        // File uploads
                         .requestMatchers(HttpMethod.POST, "/api/users/{id}/avatar").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}/avatar").permitAll()
-                        // Peasant может только GET пользователей
+                        // API access
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "PEASANT")
-                        // Все остальные операции по /api/** только для ADMIN
                         .requestMatchers("/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()); // Basic Auth
+                .httpBasic(Customizer.withDefaults());
         return http.build();
     }
 
