@@ -145,7 +145,7 @@ set "WORKDIR=%INSTALL_DIR%"
 echo Set ws = CreateObject("Wscript.Shell") > "%INSTALL_DIR%\start-app.vbs"
 echo ws.run "cmd /c cd /d ""%WORKDIR%"" && mvnw spring-boot:run", 0 >> "%INSTALL_DIR%\start-app.vbs"
 echo WScript.Sleep(8000) >> "%INSTALL_DIR%\start-app.vbs"
-echo ws.run "cmd /c start http://localhost:8080/swagger-ui.html", 0 >> "%INSTALL_DIR%\start-app.vbs"
+echo ws.run "cmd /c start http://localhost:8080", 0 >> "%INSTALL_DIR%\start-app.vbs"
 
 :: Создание ярлыка через PowerShell
 powershell -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%SHORTCUT%'); $s.TargetPath='%TARGET%'; $s.WorkingDirectory='%WORKDIR%'; $s.IconLocation='%JAVA_HOME%\bin\javaw.exe'; $s.Description='Users API Application'; $s.Save()" >nul 2>&1
@@ -190,6 +190,7 @@ echo [INFO] The application will start automatically
 echo        and open Swagger UI in your browser
 echo.
 echo [INFO] Access points:
+echo        - UI: http://localhost:8080
 echo        - Swagger UI: http://localhost:8080/swagger-ui.html
 echo        - H2 Console: http://localhost:8080/h2-console
 echo        - JDBC URL: jdbc:h2:mem:testdb
