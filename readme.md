@@ -31,6 +31,7 @@ If the desktop shortcut doesn't work, you can:
 
 ## Access Points:
 
+- **UI**: http://localhost:8080
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **H2 Console**: http://localhost:8080/h2-console
 - **Credentials**:
